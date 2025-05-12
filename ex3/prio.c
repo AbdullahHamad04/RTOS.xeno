@@ -9,7 +9,6 @@
 
 typedef struct {
     int inside;
-    int total;
 } mc_result_t;
 
 static RT_TASK  worker_tasks[NUM_WORKERS];
@@ -20,7 +19,7 @@ void mc_worker(void *arg) {
     int id = (int)(intptr_t)arg;
     unsigned int seed = (unsigned int)time(NULL) ^ (id * 0x9e3779b9U);
 
-    mc_result_t res = { .inside = 0, .total = POINTS_PER_WORKER };
+    mc_result_t res = { .inside = 0 };
 
     for (int i = 0; i < POINTS_PER_WORKER; ++i) {
         double x = (double)rand_r(&seed) / RAND_MAX;
@@ -33,7 +32,8 @@ void mc_worker(void *arg) {
 }
 
 int main(void) {
-    int total_inside = 0, total_points = 0;
+    int total_inside = 0;
+    const int total_points = NUM_WORKERS * POINTS_PER_WORKER;
     mc_result_t res;
 
     if (rt_queue_create(&result_queue, "MCQueue", sizeof(mc_result_t), NUM_WORKERS, Q_FIFO) < 0) {
@@ -52,7 +52,6 @@ int main(void) {
             return EXIT_FAILURE;
         }
         total_inside += res.inside;
-        total_points += res.total;
     }
 
     double pi_est = 4.0 * (double)total_inside / total_points;
