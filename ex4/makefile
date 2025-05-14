@@ -1,5 +1,5 @@
-TARGET = reader_writer
-SRCS   = reader_writer.c
+TARGET = rw
+SRCS   = rw.c
 
 CFLAGS := $(shell xeno-config --cflags --alchemy)
 LDFLAGS := $(shell xeno-config --ldflags --alchemy)
