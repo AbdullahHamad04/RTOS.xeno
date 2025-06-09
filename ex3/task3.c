@@ -3,7 +3,6 @@
 #include <time.h>
 #include <alchemy/task.h>
 #include <alchemy/queue.h>
-
 #define NUM_WORKERS        4
 #define POINTS_PER_WORKER 100000
 
@@ -27,25 +26,20 @@ void mc_worker(void *arg) {
         if (x * x + y * y <= 1.0)
             res.inside++;
     }
-
     rt_queue_write(&result_queue, &res, sizeof(res), TM_INFINITE);
 }
-
 int main(void) {
     int total_inside = 0;
     const int total_points = NUM_WORKERS * POINTS_PER_WORKER;
     mc_result_t res;
-
     if (rt_queue_create(&result_queue, "MCQueue", sizeof(mc_result_t), NUM_WORKERS, Q_FIFO) < 0) {
         fprintf(stderr, "Queue creation failed\n");
         return EXIT_FAILURE;
     }
-
     for (int i = 0; i < NUM_WORKERS; ++i) {
         rt_task_create(&worker_tasks[i], NULL, 0, 50, 0);
         rt_task_start(&worker_tasks[i], mc_worker, (void *)(intptr_t)i);
     }
-
     for (int i = 0; i < NUM_WORKERS; ++i) {
         if (rt_queue_read(&result_queue, &res, sizeof(res), TM_INFINITE) < 0) {
             fprintf(stderr, "Queue read failed\n");
@@ -53,10 +47,8 @@ int main(void) {
         }
         total_inside += res.inside;
     }
-
     double pi_est = 4.0 * (double)total_inside / total_points;
     printf("Estimated π = %.6f using %d points\n", pi_est, total_points);
-
     rt_queue_delete(&result_queue);
     return EXIT_SUCCESS;
 }
